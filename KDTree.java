@@ -99,31 +99,46 @@ public class KDTree {
 	}
 	*/
 	
-	public static Boolean find(Node root, double x, double y) {   //rangeSearch 60,40,r=5
+	public static Node find(Node root, double x, double y, int r) {   //rangeSearch e.g(60,40) r=5, 55<x<65, 35<y<45
 		if (root == null) {
-			return false;
+			return null;
+		} else if (x<=root.getX()+r && x>root.getX()-r && y<=root.getY()+r && y>root.getY()-r){
+			//now we check if the node is in the radius
+			double dist = Math.sqrt(Math.pow(Math.abs(root.getX()-x),2) + Math.pow(Math.abs(root.getY()-y), 2));
+			if(dist<=r) return root;
 		} else {
-			Boolean cur;
 			if(root.getLev()==1) {
-				if (x < root.getX()) {
-					find(root.getLeft(), x,y);
-				} else if (x >= root.getX()){
-					find(root.getRight(), x,y);
-				}else if(x == root.getX()&& y==root.getY() ) {
-					return true;
+				if (root.getX()< x-r) {
+					return null;
+				} else if (x+r < root.getX()){
+					return find(root.getLeft(), x,y,r);
+				}else if(x+r >= root.getX()) {
+					if (x<=root.getX()+r && x>root.getX()-r && y<=root.getY()+r && y>root.getY()-r){
+						//check if the node is in the radius
+						double dist = Math.sqrt(Math.pow(Math.abs(root.getX()-x),2) + Math.pow(Math.abs(root.getY()-y), 2));
+						if(dist<=r) return root;
+					}
+					find(root.getRight(), x,y,r);
+					find(root.getLeft(), x,y,r);
 				}
 			}
 			if(root.getLev()==2) {
-				if (y < root.getY()) {
-					find(root.getLeft(), x,y);
-				} else if(y >= root.getY()) {
-					find(root.getRight(), x,y);
-				}else if(x == root.getX()&& y==root.getY() ) {
-					return true;
+				if(root.getY() < y-r) {   //current node y smaller than minimum range, break
+					return null;
+				}else if (y+r < root.getY()) {   //current node y larger than max range, check left
+					find(root.getLeft(), x,y,r);
+				} else if(y+r >= root.getY()) {   //current node y same as max range, check both left and right
+					if (x<=root.getX()+r && x>root.getX()-r && y<=root.getY()+r && y>root.getY()-r){
+						//check if the node is in the radius
+						double dist = Math.sqrt(Math.pow(Math.abs(root.getX()-x),2) + Math.pow(Math.abs(root.getY()-y), 2));
+						if(dist<=r) return root;
+					}
+					find(root.getRight(), x,y,r);
+					find(root.getLeft(), x,y,r);
 				}
 			}
 		}
-		return false;	
+		return null;	
 	}
 	
 	public static Boolean efind(Node root, double x, double y) {   //exactSearch
@@ -164,7 +179,7 @@ public class KDTree {
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
 		Node root = null;
-		int size= 36500;      
+		int size= 36650;      
 		while(size>0) {             //不知道为什么如果用in.nextline()的话永远都不会break。。。
 			String tmp = in.nextLine();
 			String[] tmp1 = tmp.split(",");
@@ -176,6 +191,7 @@ public class KDTree {
 		in.close();
 		Boolean res = efind(root, 46.6436,-118.5566);  //return true
 		System.out.println(res);
+		Node[] range = find(root, 46.6436,-118.5566,4);
 		//System.out.println(root.getLeft().getX());
 		//inOrder(root);
 	}
